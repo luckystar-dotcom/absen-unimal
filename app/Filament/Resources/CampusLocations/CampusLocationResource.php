@@ -23,6 +23,13 @@ class CampusLocationResource extends Resource
     protected static ?string $navigationLabel = 'Titik Absensi Kampus';
     protected static ?string $pluralModelLabel = 'Titik Absensi Kampus';
     protected static ?string $modelLabel = 'Titik Absensi';
+    protected static string | \UnitEnum | null $navigationGroup = 'Master Data';
+    protected static ?int $navigationSort = 5;
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->isAdmin();
+    }
 
     protected static ?string $recordTitleAttribute = 'name_location';
 

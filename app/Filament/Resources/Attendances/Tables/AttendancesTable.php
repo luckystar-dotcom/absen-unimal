@@ -17,31 +17,42 @@ class AttendancesTable
     public static function configure(Table $table): Table
     {
         return $table
-            // Menerapkan Eager Loading -> Hanya mengeksekusi 2 Query secara keseluruhan (Anti N+1)
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user', 'campus_location']))
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = auth()->user();
+
+                // Dosen: hanya lihat absensi dari jadwal miliknya
+                if ($user->isDosen()) {
+                    $query->whereHas('attendanceSession.courseSchedule', function (Builder $q) use ($user) {
+                        $q->where('dosen_id', $user->id);
+                    });
+                }
+
+                return $query->with([
+                    'student',
+                    'attendanceSession.courseSchedule.subject',
+                    'attendanceSession.courseSchedule.studyClass',
+                ]);
+            })
             ->columns([
-                TextColumn::make('user.name')
-                    ->label('Nama Mahasiswa')
+                TextColumn::make('student.name')
+                    ->label('Mahasiswa')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('user.nip_nim')
+                TextColumn::make('student.nip_nim')
                     ->label('NIM')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('campus_location.name_location')
-                    ->label('Lokasi Kampus')
+                TextColumn::make('attendanceSession.courseSchedule.subject.name')
+                    ->label('Mata Kuliah')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('capture_lat')
-                    ->label('Latitude')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('capture_long')
-                    ->label('Longitude')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('attendanceSession.courseSchedule.studyClass.name')
+                    ->label('Kelas')
+                    ->sortable(),
+                TextColumn::make('attendanceSession.meeting_number')
+                    ->label('Pertemuan')
+                    ->formatStateUsing(fn ($state) => $state ? 'Ke-' . $state : '-')
+                    ->sortable(),
                 TextColumn::make('distance_meters')
                     ->label('Jarak')
                     ->numeric()
@@ -53,14 +64,26 @@ class AttendancesTable
                         'hadir' => 'success',
                         'luar_radius' => 'danger',
                         'terlambat' => 'warning',
+                        'izin' => 'info',
+                        'sakit' => 'gray',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'hadir' => 'Hadir',
+                        'luar_radius' => 'Luar Radius',
+                        'terlambat' => 'Terlambat',
+                        'izin' => 'Izin',
+                        'sakit' => 'Sakit',
+                        default => $state,
                     }),
-                TextColumn::make('user_agent')
-                    ->label('Device Info')
-                    ->limit(30)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('proof_file')
+                    ->label('Bukti')
+                    ->formatStateUsing(fn ($state) => $state ? '📎 Lihat' : '-')
+                    ->url(fn ($record) => $record->proof_file ? asset('storage/' . $record->proof_file) : null)
+                    ->openUrlInNewTab()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('created_at')
-                    ->label('Waktu Presensi')
+                    ->label('Waktu')
                     ->dateTime('d M Y - H:i:s')
                     ->sortable(),
             ])
@@ -71,25 +94,22 @@ class AttendancesTable
                         'hadir' => 'Hadir',
                         'luar_radius' => 'Luar Radius',
                         'terlambat' => 'Terlambat',
+                        'izin' => 'Izin',
+                        'sakit' => 'Sakit',
                     ]),
                 Filter::make('created_at')
-                    ->label('Tanggal Presensi')
+                    ->label('Tanggal')
                     ->form([
-                        DatePicker::make('created_from')->label('Dari Tanggal'),
-                        DatePicker::make('created_until')->label('Sampai Tanggal'),
+                        DatePicker::make('created_from')->label('Dari'),
+                        DatePicker::make('created_until')->label('Sampai'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when(
-                                $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                            );
-                    })
+                            ->when($data['created_from'], fn (Builder $q, $date) => $q->whereDate('created_at', '>=', $date))
+                            ->when($data['created_until'], fn (Builder $q, $date) => $q->whereDate('created_at', '<=', $date));
+                    }),
             ])
+            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 EditAction::make(),
             ])

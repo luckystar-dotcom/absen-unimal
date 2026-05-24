@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -53,11 +54,44 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Relasi: User memiliki banyak data presensi.
+     * Relasi: User memiliki banyak data presensi (legacy).
      */
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * Relasi: Dosen memiliki banyak jadwal kuliah.
+     */
+    public function courseSchedulesAsDosen(): HasMany
+    {
+        return $this->hasMany(CourseSchedule::class, 'dosen_id');
+    }
+
+    /**
+     * Relasi: Mahasiswa memiliki banyak enrollment (KRS).
+     */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(StudentEnrollment::class, 'student_id');
+    }
+
+    /**
+     * Relasi: Jadwal yang di-enroll mahasiswa (via pivot).
+     */
+    public function enrolledSchedules(): BelongsToMany
+    {
+        return $this->belongsToMany(CourseSchedule::class, 'student_enrollments', 'student_id', 'course_schedule_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relasi: Absensi sebagai mahasiswa (via student_id).
+     */
+    public function studentAttendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'student_id');
     }
 
     /**

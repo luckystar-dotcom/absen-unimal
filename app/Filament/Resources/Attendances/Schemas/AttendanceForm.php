@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Attendances\Schemas;
 
+use App\Models\AttendanceSession;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -13,28 +15,51 @@ class AttendanceForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
+                Select::make('attendance_session_id')
+                    ->label('Sesi Pertemuan')
+                    ->options(function () {
+                        return AttendanceSession::with(['courseSchedule.subject', 'courseSchedule.studyClass'])
+                            ->get()
+                            ->mapWithKeys(fn ($s) => [
+                                $s->id => $s->courseSchedule->subject->name . ' - Kelas ' . $s->courseSchedule->studyClass->name . ' (Ke-' . $s->meeting_number . ')',
+                            ]);
+                    })
+                    ->searchable()
                     ->required(),
-                Select::make('campus_location_id')
-                    ->relationship('campus_location', 'name_location')
+                Select::make('student_id')
+                    ->label('Mahasiswa')
+                    ->options(fn () => User::where('role', 'mahasiswa')->pluck('name', 'id'))
+                    ->searchable()
                     ->required(),
                 TextInput::make('capture_lat')
-                    ->required()
-                    ->numeric(),
+                    ->label('Latitude')
+                    ->numeric()
+                    ->default(0),
                 TextInput::make('capture_long')
-                    ->required()
-                    ->numeric(),
+                    ->label('Longitude')
+                    ->numeric()
+                    ->default(0),
                 TextInput::make('distance_meters')
-                    ->required()
-                    ->numeric(),
+                    ->label('Jarak (m)')
+                    ->numeric()
+                    ->default(0),
                 Select::make('status')
-                    ->options(['hadir' => 'Hadir', 'luar_radius' => 'Luar radius', 'terlambat' => 'Terlambat'])
+                    ->options([
+                        'hadir' => 'Hadir',
+                        'luar_radius' => 'Luar Radius',
+                        'terlambat' => 'Terlambat',
+                        'izin' => 'Izin',
+                        'sakit' => 'Sakit',
+                    ])
                     ->default('hadir')
                     ->required(),
                 Textarea::make('user_agent')
                     ->default(null)
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextInput::make('proof_file')
+                    ->label('File Bukti')
+                    ->default(null),
             ]);
     }
 }

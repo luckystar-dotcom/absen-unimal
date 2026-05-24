@@ -35,6 +35,8 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/absensi', [AttendanceController::class, 'index'])->name('absensi');
     Route::post('/absensi', [AttendanceController::class, 'store'])->name('absensi.store');
+    Route::post('/absensi/permit', [AttendanceController::class, 'submitPermit'])->name('absensi.permit');
+    Route::get('/riwayat', [AttendanceController::class, 'history'])->name('riwayat');
 });
 
 /*

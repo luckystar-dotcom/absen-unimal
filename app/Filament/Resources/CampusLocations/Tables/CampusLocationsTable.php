@@ -16,6 +16,7 @@ class CampusLocationsTable
         return $table
             ->columns([
                 TextColumn::make('name_location')
+                    ->label('Nama Lokasi')
                     ->searchable(),
                 TextColumn::make('latitude')
                     ->numeric()
@@ -24,10 +25,22 @@ class CampusLocationsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('radius_tolerance')
+                    ->label('Radius (m)')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('is_active')
+                    ->label('Aktif')
                     ->boolean(),
+                TextColumn::make('start_time')
+                    ->label('Mulai Sesi')
+                    ->time('H:i')
+                    ->sortable()
+                    ->placeholder('Selalu Buka'),
+                TextColumn::make('end_time')
+                    ->label('Akhir Sesi')
+                    ->time('H:i')
+                    ->sortable()
+                    ->placeholder('Selalu Buka'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

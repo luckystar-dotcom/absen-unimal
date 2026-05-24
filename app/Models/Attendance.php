@@ -13,6 +13,8 @@ class Attendance extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'attendance_session_id',
+        'student_id',
         'user_id',
         'campus_location_id',
         'capture_lat',
@@ -20,6 +22,7 @@ class Attendance extends Model
         'distance_meters',
         'status',
         'user_agent',
+        'proof_file',
     ];
 
     /**
@@ -37,7 +40,7 @@ class Attendance extends Model
     }
 
     /**
-     * Relasi: Presensi dimiliki oleh seorang User.
+     * Relasi: Presensi dimiliki oleh seorang User (legacy).
      */
     public function user(): BelongsTo
     {
@@ -45,7 +48,15 @@ class Attendance extends Model
     }
 
     /**
-     * Relasi: Presensi terkait dengan satu lokasi kampus.
+     * Relasi: Presensi dimiliki oleh seorang mahasiswa.
+     */
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * Relasi: Presensi terkait dengan satu lokasi kampus (legacy).
      */
     public function campusLocation(): BelongsTo
     {
@@ -58,5 +69,13 @@ class Attendance extends Model
     public function campus_location(): BelongsTo
     {
         return $this->belongsTo(CampusLocation::class);
+    }
+
+    /**
+     * Relasi: Presensi terkait dengan satu sesi pertemuan.
+     */
+    public function attendanceSession(): BelongsTo
+    {
+        return $this->belongsTo(AttendanceSession::class);
     }
 }

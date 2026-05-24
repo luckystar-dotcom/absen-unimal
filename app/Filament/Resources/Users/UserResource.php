@@ -23,6 +23,13 @@ class UserResource extends Resource
     protected static ?string $navigationLabel = 'Daftar Pengguna';
     protected static ?string $pluralModelLabel = 'Daftar Pengguna';
     protected static ?string $modelLabel = 'Pengguna';
+    protected static string | \UnitEnum | null $navigationGroup = 'Master Data';
+    protected static ?int $navigationSort = 0;
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->isAdmin();
+    }
 
     protected static ?string $recordTitleAttribute = 'name';
 

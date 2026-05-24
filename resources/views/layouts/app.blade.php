@@ -124,6 +124,17 @@
                 <svg class="h-6 w-6 text-amber-400 filter drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                 </svg>
+
+                @if(Auth::user()->isMahasiswa())
+                <div style="display: flex; align-items: center; gap: 4px; margin-left: 12px;">
+                    <a href="{{ route('absensi') }}" style="padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('absensi') ? 'background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25);' : 'color: #94a3b8; border: 1px solid transparent;' }}">
+                        Presensi
+                    </a>
+                    <a href="{{ route('riwayat') }}" style="padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('riwayat') ? 'background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25);' : 'color: #94a3b8; border: 1px solid transparent;' }}">
+                        Riwayat
+                    </a>
+                </div>
+                @endif
             </div>
 
             <div class="topbar-user">

@@ -18,6 +18,8 @@ class CampusLocation extends Model
         'longitude',
         'radius_tolerance',
         'is_active',
+        'start_time',
+        'end_time',
     ];
 
     /**

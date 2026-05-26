@@ -50,13 +50,14 @@
                     <div class="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
                     <div class="relative z-10">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="text-2xl">
-                                @php $hour = now()->format('H'); $emoji = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : '🌙'); $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam'); @endphp
-                                {{ $emoji }}
+                            <span class="text-2xl" id="greeting-emoji">
+                                🌅
                             </span>
                         </div>
-                        <h2 class="text-xl lg:text-2xl font-extrabold text-white tracking-tight mb-1">{{ $greeting }}, {{ explode(' ', $user->name)[0] }}!</h2>
-                        <p class="text-brand-200 text-sm font-medium">{{ now()->translatedFormat('l, d F Y') }}</p>
+                        <h2 class="text-xl lg:text-2xl font-extrabold text-white tracking-tight mb-1">
+                            <span id="greeting-text">Selamat Pagi</span>, {{ explode(' ', $user->name)[0] }}!
+                        </h2>
+                        <p class="text-brand-200 text-sm font-medium" id="current-date"></p>
                         <div class="flex flex-wrap items-center gap-3 mt-4">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm text-white text-xs font-semibold">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
@@ -247,6 +248,49 @@
 
             html += '</div>';
             container.innerHTML = html;
+        })();
+
+        // ===== REAL-TIME GREETING & DATE =====
+        (function() {
+            function updateGreetingAndDate() {
+                const now = new Date();
+                const hours = now.getHours();
+                
+                let greeting = 'Selamat Malam';
+                let emoji = '🌙';
+                
+                if (hours >= 5 && hours < 12) {
+                    greeting = 'Selamat Pagi';
+                    emoji = '🌅';
+                } else if (hours >= 12 && hours < 15) {
+                    greeting = 'Selamat Siang';
+                    emoji = '☀️';
+                } else if (hours >= 15 && hours < 18) {
+                    greeting = 'Selamat Sore';
+                    emoji = '🌇';
+                }
+
+                const greetingTextEl = document.getElementById('greeting-text');
+                const greetingEmojiEl = document.getElementById('greeting-emoji');
+                if (greetingTextEl) greetingTextEl.textContent = greeting;
+                if (greetingEmojiEl) greetingEmojiEl.textContent = emoji;
+
+                // Format Indonesian Date: e.g. "Senin, 27 Mei 2026"
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                const dayName = days[now.getDay()];
+                const dateNum = now.getDate();
+                const monthName = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                const formattedDate = `${dayName}, ${dateNum} ${monthName} ${year}`;
+                const dateEl = document.getElementById('current-date');
+                if (dateEl) dateEl.textContent = formattedDate;
+            }
+            
+            updateGreetingAndDate();
+            setInterval(updateGreetingAndDate, 60000);
         })();
     </script>
     @endpush

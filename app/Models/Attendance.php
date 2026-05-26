@@ -78,4 +78,12 @@ class Attendance extends Model
     {
         return $this->belongsTo(AttendanceSession::class);
     }
+
+    /**
+     * Relasi: Audit trail pencatatan perubahan status presensi.
+     */
+    public function audits(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AttendanceAudit::class);
+    }
 }

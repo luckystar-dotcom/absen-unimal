@@ -12,6 +12,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AttendanceSessionResource extends Resource
 {
@@ -31,6 +32,21 @@ class AttendanceSessionResource extends Resource
     public static function table(Table $table): Table
     {
         return AttendanceSessionsTable::configure($table);
+    }
+
+    /**
+     * Dosen hanya bisa melihat sesi pertemuan dari jadwal miliknya (resource-level scoping).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && $user->isDosen()) {
+            $query->whereHas('courseSchedule', fn (Builder $q) => $q->where('dosen_id', $user->id));
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

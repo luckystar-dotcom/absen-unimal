@@ -111,7 +111,27 @@ class AttendancesTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->using(function (\App\Models\Attendance $record, array $data): \App\Models\Attendance {
+                        $oldStatus = $record->status;
+                        $newStatus = $data['status'];
+                        $reason = $data['change_reason'] ?? 'Perubahan manual oleh Dosen/Admin';
+                        
+                        unset($data['change_reason']);
+                        
+                        $record->update($data);
+
+                        if ($oldStatus !== $newStatus) {
+                            $record->audits()->create([
+                                'changed_by_user_id' => auth()->id(),
+                                'old_status' => $oldStatus,
+                                'new_status' => $newStatus,
+                                'reason' => $reason,
+                            ]);
+                        }
+
+                        return $record;
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

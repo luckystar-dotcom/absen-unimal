@@ -52,7 +52,14 @@ class AttendanceForm
                         'sakit' => 'Sakit',
                     ])
                     ->default('hadir')
-                    ->required(),
+                    ->required()
+                    ->live(), // Ensures dynamic form updates when status changes!
+                Textarea::make('change_reason')
+                    ->label('Alasan Perubahan')
+                    ->placeholder('Wajib diisi jika status presensi diubah secara manual oleh Dosen/Admin...')
+                    ->columnSpanFull()
+                    ->required(fn ($record, $get) => $record && $get('status') !== $record->status)
+                    ->visible(fn ($record, $get) => $record && $get('status') !== $record->status),
                 Textarea::make('user_agent')
                     ->default(null)
                     ->columnSpanFull()

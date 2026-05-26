@@ -54,6 +54,37 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                'panels::body.end',
+                fn (): string => \Illuminate\Support\Facades\Blade::render("
+                    <script src='https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js'></script>
+                    <script src='https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js'></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            if (typeof Pusher !== 'undefined') {
+                                window.Pusher = Pusher;
+                                const EchoClass = window.LaravelEcho || window.Echo;
+                                if (EchoClass) {
+                                    window.Echo = new EchoClass({
+                                        broadcaster: 'reverb',
+                                        key: '{{ env('REVERB_APP_KEY') }}',
+                                        wsHost: window.location.hostname,
+                                        wsPort: {{ env('REVERB_PORT', 8080) }},
+                                        wssPort: {{ env('REVERB_PORT', 8080) }},
+                                        forceTLS: false,
+                                        enabledTransports: ['ws', 'wss'],
+                                    });
+                                    console.log('Laravel Echo initialized successfully via CDN on Filament Dashboard!');
+                                } else {
+                                    console.error('Laravel Echo class not found!');
+                                }
+                            } else {
+                                console.error('Pusher library not loaded!');
+                            }
+                        });
+                    </script>
+                "),
+            );
     }
 }

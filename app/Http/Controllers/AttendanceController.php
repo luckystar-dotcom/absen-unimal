@@ -180,6 +180,9 @@ class AttendanceController extends Controller
             'user_agent' => $request->header('User-Agent'),
         ]);
 
+        // Trigger Event untuk Live Counter WebSockets
+        event(new \App\Events\AttendanceSubmitted($attendance));
+
         $messages = [
             'hadir' => '✅ Presensi berhasil! Anda berada dalam radius kampus.',
             'luar_radius' => '❌ Presensi ditolak! Anda berada di luar radius kampus (' . round($distance) . 'm dari titik referensi).',
@@ -254,6 +257,9 @@ class AttendanceController extends Controller
             'user_agent' => $request->header('User-Agent'),
             'proof_file' => $proofPath,
         ]);
+
+        // Trigger Event untuk Live Counter WebSockets
+        event(new \App\Events\AttendanceSubmitted($attendance));
 
         $typeLabel = $request->type === 'izin' ? 'Izin' : 'Sakit';
 

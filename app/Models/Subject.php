@@ -11,12 +11,14 @@ class Subject extends Model
         'code',
         'name',
         'sks',
+        'semester',
     ];
 
     protected function casts(): array
     {
         return [
             'sks' => 'integer',
+            'semester' => 'integer',
         ];
     }
 

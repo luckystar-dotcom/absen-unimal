@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\DashboardMahasiswaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -24,12 +25,23 @@ Route::get('/dashboard', function () {
         return redirect('/admin');
     }
 
-    return redirect('/absensi');
+    return redirect()->route('mahasiswa.dashboard');
 })->middleware(['auth'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
-| Routes Mahasiswa
+| Routes Mahasiswa — Dashboard & SIAKAD Mini
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {
+    Route::get('/dashboard', [DashboardMahasiswaController::class, 'index'])->name('mahasiswa.dashboard');
+    Route::get('/katalog', [DashboardMahasiswaController::class, 'katalog'])->name('mahasiswa.katalog');
+    Route::get('/dosen', [DashboardMahasiswaController::class, 'dosen'])->name('mahasiswa.dosen');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Routes Mahasiswa — Presensi & Riwayat
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
@@ -51,3 +63,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+

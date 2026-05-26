@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-mahasiswa-layout pageTitle="Riwayat Presensi">
     @push('styles')
     <style>
         .riwayat-container { max-width: 640px; margin: 0 auto; padding: 32px 20px; }
@@ -123,4 +123,4 @@
         </div>
         @endif
     </div>
-</x-app-layout>
+</x-mahasiswa-layout>

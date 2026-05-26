@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-mahasiswa-layout pageTitle="Presensi GPS">
     @push('styles')
     <style>
         .attendance-container { max-width: 480px; margin: 0 auto; padding: 32px 20px; }
@@ -362,4 +362,4 @@
             btn.disabled = false; btn.textContent = 'Kirim Pengajuan';
         });
     </script>
-</x-app-layout>
+</x-mahasiswa-layout>

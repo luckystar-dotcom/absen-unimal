@@ -17,19 +17,27 @@ class AttendanceController extends Controller
     /**
      * Tampilkan halaman presensi mahasiswa.
      * Flow baru: Cari sesi aktif yang cocok dengan KRS mahasiswa.
+     * Mendukung query param ?schedule_id=X untuk filter jadwal tertentu.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
 
         // Ambil jadwal yang di-enroll mahasiswa (KRS)
         $enrolledScheduleIds = $user->enrollments()->pluck('course_schedule_id');
 
-        // Cari sesi pertemuan yang aktif DAN sesuai KRS mahasiswa
-        $activeSession = AttendanceSession::where('is_active', true)
+        // Query sesi pertemuan yang aktif DAN sesuai KRS mahasiswa
+        $sessionQuery = AttendanceSession::where('is_active', true)
             ->whereIn('course_schedule_id', $enrolledScheduleIds)
-            ->with(['courseSchedule.subject', 'courseSchedule.studyClass', 'courseSchedule.dosen', 'courseSchedule.campusLocation'])
-            ->first();
+            ->with(['courseSchedule.subject', 'courseSchedule.studyClass', 'courseSchedule.dosen', 'courseSchedule.campusLocation']);
+
+        // Jika ada schedule_id dari parameter (flow "Masuk Kelas & Absen"), filter lebih spesifik
+        $scheduleId = $request->query('schedule_id');
+        if ($scheduleId) {
+            $sessionQuery->where('course_schedule_id', $scheduleId);
+        }
+
+        $activeSession = $sessionQuery->first();
 
         // Cek apakah sudah absen di sesi ini
         $todayAttendance = null;

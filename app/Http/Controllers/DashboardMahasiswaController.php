@@ -47,13 +47,20 @@ class DashboardMahasiswaController extends Controller
             return $schedule->subject->sks ?? 0;
         });
 
+        // Ambil semua sesi presensi aktif untuk jadwal kuliah dalam KRS mahasiswa
+        $activeSessions = \App\Models\AttendanceSession::where('is_active', true)
+            ->whereIn('course_schedule_id', $krs->pluck('id'))
+            ->get()
+            ->keyBy('course_schedule_id');
+
         return view('mahasiswa.dashboard', compact(
             'user',
             'krs',
             'jadwalHariIni',
             'hariIni',
             'totalSks',
-            'today'
+            'today',
+            'activeSessions'
         ));
     }
 

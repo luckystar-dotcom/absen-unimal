@@ -104,12 +104,11 @@
     <div class="attendance-container">
         <!-- Greeting -->
         <div class="greeting">
-            <div class="greeting-emoji">
-                @php $hour = now()->format('H'); $emoji = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : '🌙'); $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam'); @endphp
-                {{ $emoji }}
-            </div>
-            <h1 class="greeting-text">{{ $greeting }}, {{ explode(' ', Auth::user()->name)[0] }}!</h1>
-            <p class="greeting-date">{{ now()->translatedFormat('l, d F Y') }}</p>
+            <div class="greeting-emoji" id="greeting-emoji">🌅</div>
+            <h1 class="greeting-text">
+                <span id="greeting-text">Selamat Pagi</span>, {{ explode(' ', Auth::user()->name)[0] }}!
+            </h1>
+            <p class="greeting-date" id="current-date"></p>
         </div>
 
         @if($activeSession)
@@ -361,5 +360,48 @@
             } catch (err) { res.className = 'show error'; res.style.display = 'block'; res.textContent = 'Gagal mengirim data.'; }
             btn.disabled = false; btn.textContent = 'Kirim Pengajuan';
         });
+
+        // ===== REAL-TIME GREETING & DATE =====
+        (function() {
+            function updateGreetingAndDate() {
+                const now = new Date();
+                const hours = now.getHours();
+                
+                let greeting = 'Selamat Malam';
+                let emoji = '🌙';
+                
+                if (hours >= 5 && hours < 12) {
+                    greeting = 'Selamat Pagi';
+                    emoji = '🌅';
+                } else if (hours >= 12 && hours < 15) {
+                    greeting = 'Selamat Siang';
+                    emoji = '☀️';
+                } else if (hours >= 15 && hours < 18) {
+                    greeting = 'Selamat Sore';
+                    emoji = '🌇';
+                }
+
+                const greetingTextEl = document.getElementById('greeting-text');
+                const greetingEmojiEl = document.getElementById('greeting-emoji');
+                if (greetingTextEl) greetingTextEl.textContent = greeting;
+                if (greetingEmojiEl) greetingEmojiEl.textContent = emoji;
+
+                // Format Indonesian Date
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                const dayName = days[now.getDay()];
+                const dateNum = now.getDate();
+                const monthName = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                const formattedDate = `${dayName}, ${dateNum} ${monthName} ${year}`;
+                const dateEl = document.getElementById('current-date');
+                if (dateEl) dateEl.textContent = formattedDate;
+            }
+            
+            updateGreetingAndDate();
+            setInterval(updateGreetingAndDate, 60000);
+        })();
     </script>
 </x-mahasiswa-layout>

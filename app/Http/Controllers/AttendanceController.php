@@ -276,14 +276,21 @@ class AttendanceController extends Controller
     /**
      * Tampilkan halaman riwayat presensi mahasiswa.
      */
-    public function history(): View
+    public function history(Request $request): View
     {
         $user = Auth::user();
 
-        $attendances = Attendance::where('student_id', $user->id)
-            ->with(['attendanceSession.courseSchedule.subject', 'attendanceSession.courseSchedule.studyClass'])
-            ->latest()
-            ->get();
+        $query = Attendance::where('student_id', $user->id)
+            ->with(['attendanceSession.courseSchedule.subject', 'attendanceSession.courseSchedule.studyClass']);
+
+        $scheduleId = $request->query('schedule_id');
+        if ($scheduleId) {
+            $query->whereHas('attendanceSession', function ($q) use ($scheduleId) {
+                $q->where('course_schedule_id', $scheduleId);
+            });
+        }
+
+        $attendances = $query->latest()->get();
 
         return view('mahasiswa.riwayat', compact('attendances'));
     }

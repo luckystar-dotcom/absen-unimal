@@ -43,6 +43,16 @@ class CourseSchedulesTable
                     ->label('Lokasi')
                     ->placeholder('Belum diset')
                     ->toggleable(),
+                TextColumn::make('day_of_week')
+                    ->label('Hari')
+                    ->sortable(),
+                TextColumn::make('start_time')
+                    ->label('Waktu')
+                    ->state(fn ($record) => $record->start_time && $record->end_time 
+                        ? \Carbon\Carbon::parse($record->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($record->end_time)->format('H:i') 
+                        : '-'
+                    )
+                    ->sortable(),
                 TextColumn::make('student_enrollments_count')
                     ->label('Mahasiswa')
                     ->counts('studentEnrollments')

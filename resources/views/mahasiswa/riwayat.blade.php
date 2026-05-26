@@ -59,6 +59,22 @@
                 Riwayat Presensi
             </h1>
             <p>Seluruh riwayat kehadiran Anda tercatat di sini.</p>
+
+            @if(request()->has('schedule_id'))
+                @php
+                    $filteredSchedule = \App\Models\CourseSchedule::with('subject')->find(request('schedule_id'));
+                @endphp
+                @if($filteredSchedule)
+                    <div class="mt-4 flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm">
+                        <span class="text-xs text-amber-200/90 font-medium">
+                            Menampilkan riwayat untuk: <strong class="text-white font-semibold">{{ $filteredSchedule->subject->name }}</strong>
+                        </span>
+                        <a href="{{ route('riwayat') }}" class="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 transition-colors">
+                            Tampilkan Semua &rarr;
+                        </a>
+                    </div>
+                @endif
+            @endif
         </div>
 
         @if($attendances->count() > 0)

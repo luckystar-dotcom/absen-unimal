@@ -30,6 +30,32 @@
             box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.4);
             border-color: #3b82f6;
         }
+
+        /* Real-Time Live Presensi Styles */
+        @keyframes pulse-opacity {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .live-badge {
+            animation: pulse-opacity 2s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        .active-session-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+            color: #0f172a !important;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.35) !important;
+            animation: active-pulse 2.5s infinite ease-in-out;
+            font-weight: 800 !important;
+        }
+        @keyframes active-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.35); }
+            50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.7); }
+        }
+        .active-card {
+            border-color: rgba(245, 158, 11, 0.45) !important;
+            background: linear-gradient(180deg, #1e293b, #0f172a) !important;
+            box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.12) !important;
+        }
     </style>
     @endpush
 
@@ -88,18 +114,33 @@
                     @if($krs->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4" id="krs-grid">
                         @foreach($krs as $index => $schedule)
-                        <div class="krs-card bg-surface-700 border border-surface-600/60 rounded-xl p-5 relative overflow-hidden animate-fade-in-up" style="animation-delay: {{ $index * 80 }}ms" id="krs-card-{{ $schedule->id }}">
+                        @php
+                            $session = $activeSessions[$schedule->id] ?? null;
+                            $hasSession = $session ? 'true' : 'false';
+                            $startTime = $session ? $session->start_time->toIso8601String() : '';
+                            $endTime = $session ? $session->end_time->toIso8601String() : '';
+                        @endphp
+                        <div class="krs-card bg-surface-700 border border-surface-600/60 rounded-xl p-5 relative overflow-hidden animate-fade-in-up" 
+                             style="animation-delay: {{ $index * 80 }}ms" 
+                             id="krs-card-{{ $schedule->id }}"
+                             data-schedule-id="{{ $schedule->id }}"
+                             data-has-session="{{ $hasSession }}"
+                             data-start-time="{{ $startTime }}"
+                             data-end-time="{{ $endTime }}">
                             <!-- Top accent line -->
-                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-brand-400 rounded-t-xl"></div>
+                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-brand-400 rounded-t-xl" id="accent-line-{{ $schedule->id }}"></div>
 
                             <!-- Subject Code Badge -->
                             <div class="flex items-start justify-between mb-3">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-brand-500/15 text-brand-300 text-[11px] font-bold tracking-wide">
                                     {{ $schedule->subject->code ?? 'N/A' }}
                                 </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-600 text-surface-300 text-[11px] font-semibold">
-                                    {{ $schedule->subject->sks ?? 0 }} SKS
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="session-badge-{{ $schedule->id }}" class="hidden"></span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-600 text-surface-300 text-[11px] font-semibold">
+                                        {{ $schedule->subject->sks ?? 0 }} SKS
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Subject Name -->
@@ -124,9 +165,14 @@
                             </div>
 
                             <!-- Action Button -->
-                            <a href="{{ route('absensi', ['schedule_id' => $schedule->id]) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:from-brand-400 hover:to-brand-500 transition-all duration-200 active:scale-[0.98]" id="btn-absen-{{ $schedule->id }}">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Masuk Kelas & Absen
+                            <a href="{{ route('absensi', ['schedule_id' => $schedule->id]) }}" 
+                               class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:from-brand-400 hover:to-brand-500 transition-all duration-200 active:scale-[0.98]" 
+                               id="btn-absen-{{ $schedule->id }}">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="btn-icon-{{ $schedule->id }}">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span id="btn-text-{{ $schedule->id }}">Masuk Kelas & Absen</span>
                             </a>
                         </div>
                         @endforeach
@@ -291,6 +337,112 @@
             
             updateGreetingAndDate();
             setInterval(updateGreetingAndDate, 60000);
+        })();
+
+        // ===== REAL-TIME PRESENSI STATE CHECKER =====
+        (function() {
+            function checkLiveSessions() {
+                const now = new Date();
+                const cards = document.querySelectorAll('.krs-card');
+
+                cards.forEach(card => {
+                    const scheduleId = card.getAttribute('data-schedule-id');
+                    const hasSession = card.getAttribute('data-has-session') === 'true';
+                    const startTimeStr = card.getAttribute('data-start-time');
+                    const endTimeStr = card.getAttribute('data-end-time');
+
+                    const badge = document.getElementById(`session-badge-${scheduleId}`);
+                    const button = document.getElementById(`btn-absen-${scheduleId}`);
+                    const btnText = document.getElementById(`btn-text-${scheduleId}`);
+                    const accentLine = document.getElementById(`accent-line-${scheduleId}`);
+
+                    const absensiUrl = `{{ route('absensi') }}?schedule_id=${scheduleId}`;
+                    const riwayatUrl = `{{ route('riwayat') }}?schedule_id=${scheduleId}`;
+
+                    if (!hasSession || !startTimeStr || !endTimeStr) {
+                        // NO SESSION ACTIVE TODAY
+                        if (badge) {
+                            badge.className = 'hidden';
+                        }
+                        if (button) {
+                            button.className = 'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:from-brand-400 hover:to-brand-500 transition-all duration-200 active:scale-[0.98]';
+                            button.setAttribute('href', absensiUrl);
+                        }
+                        if (btnText) {
+                            btnText.textContent = 'Masuk Kelas & Absen';
+                        }
+                        card.classList.remove('active-card');
+                        if (accentLine) {
+                            accentLine.style.background = 'linear-gradient(to right, #3b82f6, #60a5fa)';
+                        }
+                        return;
+                    }
+
+                    const startTime = new Date(startTimeStr);
+                    const endTime = new Date(endTimeStr);
+
+                    if (now < startTime) {
+                        // UPCOMING SESSION
+                        if (badge) {
+                            badge.textContent = 'Akan Dibuka';
+                            badge.className = 'inline-flex items-center px-2 py-0.5 rounded-md bg-yellow-500/20 text-yellow-300 text-[11px] font-bold';
+                        }
+                        if (button) {
+                            button.className = 'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-surface-600 text-surface-300 text-xs font-semibold cursor-not-allowed opacity-60 pointer-events-none';
+                            button.setAttribute('href', '#');
+                        }
+                        if (btnText) {
+                            const diffMs = startTime - now;
+                            const diffMins = Math.ceil(diffMs / 60000);
+                            btnText.textContent = diffMins > 60 
+                                ? `Dibuka pukul ${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`
+                                : `Dibuka dalam ${diffMins} mnt`;
+                        }
+                        card.classList.remove('active-card');
+                        if (accentLine) {
+                            accentLine.style.background = 'linear-gradient(to right, #eab308, #ca8a04)';
+                        }
+                    } else if (now >= startTime && now <= endTime) {
+                        // ACTIVE SESSION (LIVE!)
+                        if (badge) {
+                            badge.textContent = '🔴 LIVE';
+                            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-md bg-red-500/20 text-red-300 text-[11px] font-extrabold live-badge';
+                        }
+                        if (button) {
+                            button.className = 'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg active-session-btn text-xs font-bold transition-all duration-200 active:scale-[0.98]';
+                            button.setAttribute('href', absensiUrl);
+                        }
+                        if (btnText) {
+                            btnText.textContent = '📍 Absen Sekarang';
+                        }
+                        card.classList.add('active-card');
+                        if (accentLine) {
+                            accentLine.style.background = 'linear-gradient(to right, #fbbf24, #f59e0b)';
+                        }
+                    } else {
+                        // CLOSED SESSION
+                        if (badge) {
+                            badge.textContent = 'Selesai';
+                            badge.className = 'inline-flex items-center px-2 py-0.5 rounded-md bg-surface-600 text-surface-400 text-[11px] font-semibold';
+                        }
+                        if (button) {
+                            button.className = 'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-surface-800 border border-surface-600/40 text-surface-400 text-xs font-semibold hover:bg-surface-700/60 transition-all';
+                            button.setAttribute('href', riwayatUrl);
+                        }
+                        if (btnText) {
+                            btnText.textContent = 'Lihat Riwayat Sesi';
+                        }
+                        card.classList.remove('active-card');
+                        if (accentLine) {
+                            accentLine.style.background = 'linear-gradient(to right, #475569, #334155)';
+                        }
+                    }
+                });
+            }
+
+            checkLiveSessions();
+            // Check status every 10 seconds to make it extremely responsive
+            setInterval(checkLiveSessions, 10000);
         })();
     </script>
     @endpush

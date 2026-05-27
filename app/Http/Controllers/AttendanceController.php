@@ -171,8 +171,6 @@ class AttendanceController extends Controller
         $attendance = Attendance::create([
             'attendance_session_id' => $session->id,
             'student_id' => $user->id,
-            'user_id' => $user->id,
-            'campus_location_id' => $campusLocation->id,
             'capture_lat' => $request->latitude,
             'capture_long' => $request->longitude,
             'distance_meters' => (int) round($distance),
@@ -248,8 +246,6 @@ class AttendanceController extends Controller
         $attendance = Attendance::create([
             'attendance_session_id' => $session->id,
             'student_id' => $user->id,
-            'user_id' => $user->id,
-            'campus_location_id' => $session->courseSchedule->campus_location_id,
             'capture_lat' => 0,
             'capture_long' => 0,
             'distance_meters' => 0,

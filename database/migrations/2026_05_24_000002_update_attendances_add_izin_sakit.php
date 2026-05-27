@@ -13,8 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Modifikasi enum status untuk menambahkan 'izin' dan 'sakit'
-        DB::statement("ALTER TABLE attendances MODIFY COLUMN status ENUM('hadir', 'luar_radius', 'terlambat', 'izin', 'sakit') DEFAULT 'hadir'");
+        // Modifikasi enum status untuk menambahkan 'izin' dan 'sakit' hanya di MySQL
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE attendances MODIFY COLUMN status ENUM('hadir', 'luar_radius', 'terlambat', 'izin', 'sakit') DEFAULT 'hadir'");
+        }
 
         Schema::table('attendances', function (Blueprint $table) {
             $table->string('proof_file')->nullable()->after('user_agent');
@@ -30,7 +32,9 @@ return new class extends Migration
             $table->dropColumn('proof_file');
         });
 
-        // Kembalikan enum ke semula
-        DB::statement("ALTER TABLE attendances MODIFY COLUMN status ENUM('hadir', 'luar_radius', 'terlambat') DEFAULT 'hadir'");
+        // Kembalikan enum ke semula hanya di MySQL
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE attendances MODIFY COLUMN status ENUM('hadir', 'luar_radius', 'terlambat') DEFAULT 'hadir'");
+        }
     }
 };

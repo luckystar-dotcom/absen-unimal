@@ -53,13 +53,6 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    /**
-     * Relasi: User memiliki banyak data presensi (legacy).
-     */
-    public function attendances(): HasMany
-    {
-        return $this->hasMany(Attendance::class);
-    }
 
     /**
      * Relasi: Dosen memiliki banyak jadwal kuliah.
